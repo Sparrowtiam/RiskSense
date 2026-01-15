@@ -1,3 +1,8 @@
+import streamlit as st
+
+st.title("✅ App is working")
+st.write("Streamlit loaded successfully.")
+
 """
 Main FinApp CLI application
 Kenyan Investment Recommendation System
