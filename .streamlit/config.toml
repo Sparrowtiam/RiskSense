@@ -5,23 +5,5 @@ secondaryBackgroundColor = "#F0F2F6"
 textColor = "#262730"
 font = "sans serif"
 
-[client]
-showErrorDetails = true
-toolbarMode = "viewer"
-
 [logger]
 level = "info"
-
-[server]
-port = 8501
-headless = true
-runOnSave = false
-maxUploadSize = 200
-enableCORS = false
-enableXsrfProtection = true
-
-[browser]
-gatherUsageStats = false
-
-[logger]
-level = "warning"
