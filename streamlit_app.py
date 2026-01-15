@@ -40,13 +40,16 @@ if 'market_data' not in st.session_state:
 if 'recommendation' not in st.session_state:
     st.session_state.recommendation = None
 
+@st.cache_data(ttl=3600)
 def load_market_data():
-    """Load and cache market data"""
-    if st.session_state.market_data is None:
-        with st.spinner("Loading market data..."):
-            collector = KenyanMarketDataCollector()
-            st.session_state.market_data = collector.get_all_market_data()
-    return st.session_state.market_data
+    """Load and cache market data for 1 hour"""
+    try:
+        collector = KenyanMarketDataCollector()
+        market_data = collector.get_all_market_data()
+        return market_data
+    except Exception as e:
+        st.error(f"Error loading market data: {str(e)}")
+        return None
 
 def display_header():
     """Display application header"""
@@ -258,8 +261,15 @@ def main():
     display_header()
     display_disclaimer()
     
-    # Load market data
-    market_data = load_market_data()
+    # Load market data with error handling
+    try:
+        market_data = load_market_data()
+        if market_data is None:
+            st.error("Failed to load market data. Please refresh the page.")
+            return
+    except Exception as e:
+        st.error(f"Error loading market data: {str(e)}")
+        return
     
     # Sidebar for input
     st.sidebar.markdown("## 📋 Investment Details")
@@ -313,27 +323,36 @@ def main():
     
     with tab1:
         st.markdown("---")
-        display_market_conditions(market_data)
-        st.markdown("---")
-        display_treasury_rates(market_data)
-        st.markdown("---")
-        display_nse_performance(market_data)
+        try:
+            display_market_conditions(market_data)
+            st.markdown("---")
+            display_treasury_rates(market_data)
+            st.markdown("---")
+            display_nse_performance(market_data)
+        except Exception as e:
+            st.error(f"Error displaying market data: {str(e)}")
     
     with tab2:
         st.markdown("---")
         if generate_button or st.session_state.recommendation is not None:
-            recommendation = get_investment_recommendation(market_data, amount, duration, risk)
-            st.session_state.recommendation = recommendation
-            display_recommendation(market_data, amount, duration, risk)
+            try:
+                recommendation = get_investment_recommendation(market_data, amount, duration, risk)
+                st.session_state.recommendation = recommendation
+                display_recommendation(market_data, amount, duration, risk)
+            except Exception as e:
+                st.error(f"Error generating recommendation: {str(e)}")
         else:
             st.info("👈 Click 'Generate Recommendation' in the sidebar to get started")
     
     with tab3:
         st.markdown("---")
         if generate_button or st.session_state.recommendation is not None:
-            if st.session_state.recommendation:
-                primary_instrument = st.session_state.recommendation['primary_recommendation']['instrument']
-                display_risk_analysis(market_data, primary_instrument)
+            try:
+                if st.session_state.recommendation:
+                    primary_instrument = st.session_state.recommendation['primary_recommendation']['instrument']
+                    display_risk_analysis(market_data, primary_instrument)
+            except Exception as e:
+                st.error(f"Error displaying risk analysis: {str(e)}")
         else:
             st.info("👈 Click 'Generate Recommendation' in the sidebar to analyze risks")
     
