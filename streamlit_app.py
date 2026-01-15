@@ -235,26 +235,50 @@ def display_risk_analysis(market_data, primary_instrument):
     """Display risk analysis"""
     st.subheader("⚠️ Risk Analysis")
     
-    risk_analyzer = RiskAnalyzer(market_data)
-    
-    if 'Treasury' in primary_instrument or 'Bond' in primary_instrument:
-        risk_profile = risk_analyzer.analyze_treasury_risk(50000, 6)
-    elif 'Money Market' in primary_instrument:
-        risk_profile = risk_analyzer.analyze_money_market_risk(50000, 6)
-    elif 'Fixed Deposit' in primary_instrument:
-        risk_profile = risk_analyzer.analyze_fixed_deposit_risk(50000, 6)
-    else:
-        risk_profile = risk_analyzer.analyze_equity_risk(50000, 6)
-    
-    st.markdown(f"**Overall Risk Rating**: {risk_profile['risk_rating']}")
-    st.markdown(f"**Assessment**: {risk_profile['overall_assessment']}")
-    
-    st.markdown("**Risk Factors:**")
-    for factor in risk_profile['risk_factors']:
-        color = "🔴" if factor.severity == "High" else "🟡" if factor.severity == "Medium" else "🟢"
-        with st.expander(f"{color} {factor.name} ({factor.severity})"):
-            st.markdown(f"**Description**: {factor.description}")
-            st.markdown(f"**Mitigation**: {factor.mitigation}")
+    try:
+        risk_analyzer = RiskAnalyzer(market_data)
+        
+        if 'Treasury' in primary_instrument or 'Bond' in primary_instrument:
+            risk_profile = risk_analyzer.analyze_treasury_risk(50000, 6)
+        elif 'Money Market' in primary_instrument:
+            risk_profile = risk_analyzer.analyze_money_market_risk(50000, 6)
+        elif 'Fixed Deposit' in primary_instrument:
+            risk_profile = risk_analyzer.analyze_fixed_deposit_risk(50000, 6)
+        else:
+            risk_profile = risk_analyzer.analyze_equity_risk(50000, 6)
+        
+        st.markdown(f"**Overall Risk Rating**: {risk_profile.get('risk_rating', 'N/A')}")
+        st.markdown(f"**Assessment**: {risk_profile.get('overall_assessment', 'N/A')}")
+        
+        st.markdown("**Risk Factors:**")
+        risk_factors = risk_profile.get('risk_factors', [])
+        
+        if risk_factors:
+            for idx, factor in enumerate(risk_factors, 1):
+                try:
+                    # Handle both dataclass and dict formats
+                    if hasattr(factor, 'severity'):
+                        severity = factor.severity
+                        name = factor.name
+                        description = factor.description
+                        mitigation = factor.mitigation
+                    else:
+                        severity = factor.get('severity', 'Unknown')
+                        name = factor.get('name', f'Factor {idx}')
+                        description = factor.get('description', 'No description')
+                        mitigation = factor.get('mitigation', 'No mitigation provided')
+                    
+                    color = "🔴" if severity == "High" else "🟡" if severity == "Medium" else "🟢"
+                    with st.expander(f"{color} {name} ({severity})"):
+                        st.markdown(f"**Description**: {description}")
+                        st.markdown(f"**Mitigation**: {mitigation}")
+                except Exception as e:
+                    st.warning(f"Error displaying factor: {str(e)}")
+        else:
+            st.info("No specific risk factors identified.")
+            
+    except Exception as e:
+        st.error(f"Error in risk analysis: {str(e)}")
 
 def main():
     """Main application"""
