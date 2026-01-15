@@ -1,3 +1,10 @@
+import streamlit as st
+
+st.set_page_config(page_title="App Test", layout="wide")
+
+st.title("✅ Streamlit is running")
+st.write("If you can see this, the app is executing correctly.")
+
 """
 Main FinApp CLI application
 Kenyan Investment Recommendation System
